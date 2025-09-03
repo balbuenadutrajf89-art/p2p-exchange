@@ -10,9 +10,14 @@ const app = express()
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    "http://localhost:3000", 
+    "https://p2p-exchange-ebon.vercel.app"   // domínio do Vercel
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
-}))
+}));
+
 app.use(express.json())
 
 // Routes
@@ -48,5 +53,5 @@ const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`)
-  console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`)
+  console.log(`🌐 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`)
 })
