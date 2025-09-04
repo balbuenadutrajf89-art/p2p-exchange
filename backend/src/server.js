@@ -49,9 +49,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/p2p-excha
     console.error('❌ Erro ao conectar ao MongoDB:', error)
   })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`)
-  console.log(`🌐 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`)
-})
+// Render precisa ouvir em 0.0.0.0
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+});
