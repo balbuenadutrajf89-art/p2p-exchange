@@ -1,54 +1,25 @@
-import { useState } from "react";
-import axios from "axios";
+import Head from 'next/head'
+import Link from 'next/link'
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      const res = await axios.post("https://p2p-exchange-2gol.onrender.com/api/auth/login", {
-        email,
-        password
-      });
-
-      // Salvar token no localStorage
-      localStorage.setItem("token", res.data.token);
-
-      // Redirecionar para dashboard
-      window.location.href = "/dashboard";
-    } catch (err) {
-      setError("Login inválido. Verifique email e senha.");
-    }
-  };
-
   return (
-    <div style={{ maxWidth: 400, margin: "50px auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ display: "block", marginBottom: 10, width: "100%" }}
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ display: "block", marginBottom: 10, width: "100%" }}
-        />
-        <button type="submit">Entrar</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
-  );
+    <>
+      <Head>
+        <title>P2P Exchange - Login</title>
+      </Head>
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="bg-white shadow-md p-8 rounded-lg w-96">
+          <h1 className="text-2xl font-bold text-center mb-6">Entrar</h1>
+          <form className="space-y-4">
+            <input type="email" placeholder="Email" className="w-full border px-3 py-2 rounded" />
+            <input type="password" placeholder="Senha" className="w-full border px-3 py-2 rounded" />
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">Login</button>
+          </form>
+          <p className="mt-4 text-center text-sm">
+            Não tem conta? <Link href="/register" className="text-blue-600">Registrar</Link>
+          </p>
+        </div>
+      </div>
+    </>
+  )
 }
