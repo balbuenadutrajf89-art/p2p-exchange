@@ -11,14 +11,12 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// ✅ CORS liberado (Vercel consegue acessar)
-app.use(
-  cors({
-    origin: "*", // pode restringir depois para só "https://p2p-exchange-ebon.vercel.app"
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors({
+  origin: "https://p2p-exchange-ebon.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
 
 // Rotas
 app.use("/api/users", userRoutes);
