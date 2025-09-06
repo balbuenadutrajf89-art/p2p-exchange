@@ -1,43 +1,59 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
+const router = express.Router();
 
-const userRoutes = require("./src/Rotas/user");
-const orderRoutes = require("./src/Rotas/orders");
-
-const app = express();
-
-// Middleware
-app.use(express.json());
-
-app.use(cors({
-  origin: "https://p2p-exchange-ebon.vercel.app",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
-// Rotas
-app.use("/api/users", userRoutes);
-app.use("/api/orders", orderRoutes);
-
-// Rota de teste (healthcheck)
-app.get("/", (req, res) => {
-  res.send("✅ API do P2P Exchange está rodando!");
+// 🔹 Modelo de Ordem no MongoDB
+const orderSchema = new mongoose.Schema({
+  type: { type: String, required: true },       // "Comprar" ou "Vender"
+  fromCurrency: { type: String, required: true }, // Ex: USD
+  toCurrency: { type: String, required: true },   // Ex: BRL
+  amount: { type: Number, required: true },     // Quantidade
+  rate: { type: Number, required: true },       // Taxa de câmbio
+  payment: { type: String, required: true },    // Método de pagamento
+  status: { type: String, default: "open" },    // open / completed / canceled
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Conexão com o MongoDB
-const PORT = process.env.PORT || 5000;
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("🚀 Conectado ao MongoDB Atlas");
-    app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("❌ Erro de conexão ao MongoDB:", err.message);
-  });
+const Order = mongoose.model("Order", orderSchema);
+
+// 🔹 Criar nova ordem
+router.post("/", async (req, res) => {
+  try {
+    const { type, fromCurrency, toCurrency, amount, rate, payment } = req.body;
+
+    if (!type || !fromCurrency || !toCurrency || !amount || !rate || !payment) {
+      return res.status(400).json({ error: "Preencha todos os campos" });
+    }
+
+    const newOrder = new Order({
+      type,
+      fromCurrency,
+      toCurrency,
+      amount,
+      rate,
+      payment
+    });
+
+    await newOrder.save();
+
+    console.log("✅ Nova ordem criada:", newOrder);
+    return res.json({ success: true, order: newOrder });
+  } catch (err) {
+    console.error("❌ Erro ao criar ordem:", err.message);
+    return res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
+// 🔹 Listar todas as ordens
+router.get("/", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    console.error("❌ Erro ao listar ordens:", err.message);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
+module.exports = router;
+
