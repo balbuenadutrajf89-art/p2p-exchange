@@ -1,57 +1,73 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import Head from 'next/head'
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
-export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const router = useRouter()
+const app = express();
+const PORT = process.env.PORT || 10000;
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      setIsLoggedIn(true)
-    }
-  }, [])
+// ====== Configuração CORS ======
+app.use(cors({
+  origin: "https://p2p-exchange-ebon.vercel.app", // seu front no Vercel
+  credentials: true
+}));
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('usuario')
-    setIsLoggedIn(false)
-    router.push('/')
+app.use(express.json());
+
+// ====== Rota inicial (teste rápido) ======
+app.get("/", (req, res) => {
+  res.send("🚀 API P2P rodando!");
+});
+
+// ====== Login ======
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // Exemplo de validação fixa (substituir por banco depois)
+  if (email === "teste@teste.com" && password === "123456") {
+    const token = jwt.sign({ email }, "seuSegredoJWT", { expiresIn: "1h" });
+    return res.json({ token });
   }
 
-  return (
-    <>
-      <Head>
-        <title>P2P Exchange - Home</title>
-      </Head>
+  return res.status(401).json({ error: "Credenciais inválidas" });
+});
 
-      <div className="min-h-screen">
-        {/* Cabeçalho */}
-        <nav className="bg-white shadow-md py-4 px-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">Troca P2P</h1>
-          <div className="flex space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Link href="/dashboard" className="btn-primario">Painel</Link>
-                <button onClick={handleLogout} className="btn-secundario">Sair</button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="btn-primario">Login</Link>
-                <Link href="/register" className="btn-secundario">Registrar</Link>
-              </>
-            )}
-          </div>
-        </nav>
+// ====== Minhas ordens ======
+app.get("/api/orders/my", (req, res) => {
+  try {
+    // Exemplo estático (depois buscar do banco por usuário autenticado)
+    const myOrders = [
+      { id: 1, type: "buy", amount: 100, status: "open" },
+      { id: 2, type: "sell", amount: 50, status: "closed" }
+    ];
+    res.json(myOrders);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar ordens" });
+  }
+});
 
-        {/* Conteúdo */}
-        <main className="text-center py-20 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
-          <h2 className="text-4xl font-bold mb-6">Troque Moedas de Forma Segura</h2>
-          <p className="text-lg">Plataforma P2P para câmbio de USD/USDT, Real Brasileiro, Guarani e Peso Argentino</p>
-        </main>
-      </div>
-    </>
-  )
-}
+// ====== Criar ordem ======
+app.post("/api/orders", (req, res) => {
+  const { type, amount } = req.body;
+  try {
+    // Salvar no banco depois, por enquanto retorno fixo
+    res.json({ success: true, id: Date.now(), type, amount, status: "open" });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao criar ordem" });
+  }
+});
+
+// ====== Aceitar ordem ======
+app.post("/api/orders/:id/accept", (req, res) => {
+  const { id } = req.params;
+  try {
+    // Aqui aceitaria a ordem no banco
+    res.json({ success: true, message: `Ordem ${id} aceita com sucesso!` });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao aceitar ordem" });
+  }
+});
+
+// ====== Subir servidor ======
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+});
